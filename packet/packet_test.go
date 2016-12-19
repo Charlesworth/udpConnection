@@ -10,21 +10,21 @@ func TestPacket_New(t *testing.T) {
 	testData := []byte("testData")
 	testPacket := New(MsgData, uint16(1), testData)
 
-	if testPacket.bytes[0] != MsgData {
+	if testPacket.Bytes[0] != MsgData {
 		t.Error("New packet encoding error, encoded the incorrect msgType")
 	}
 
-	if !(decodeUInt16(testPacket.bytes[1:3]) == uint16(1)) {
+	if !(decodeUInt16(testPacket.Bytes[1:3]) == uint16(1)) {
 		t.Error("New packet encoding error, encoded the incorrect sequence number")
 	}
 
-	if !bytes.Equal(testPacket.bytes[3:len(testPacket.bytes)-4], testData) {
+	if !bytes.Equal(testPacket.Bytes[3:len(testPacket.Bytes)-4], testData) {
 		t.Log("should be:", testData)
-		t.Log("is:", testPacket.bytes[3:len(testPacket.bytes)-4])
+		t.Log("is:", testPacket.Bytes[3:len(testPacket.Bytes)-4])
 		t.Error("New packet encoding error, encoded the incorrect data")
 	}
 
-	if !(crc32.ChecksumIEEE(testPacket.bytes[:len(testPacket.bytes)-4]) == decodeUInt32(testPacket.bytes[len(testPacket.bytes)-4:])) {
+	if !(crc32.ChecksumIEEE(testPacket.Bytes[:len(testPacket.Bytes)-4]) == decodeUInt32(testPacket.Bytes[len(testPacket.Bytes)-4:])) {
 		t.Error("New packet encoding error, encoded crc32 checksum does not match recalculated checksum")
 	}
 }
@@ -80,10 +80,10 @@ func TestPacket_CheckIntegrity(t *testing.T) {
 		t.Error("CheckIntegrity failed on a non-corrupt packet")
 	}
 
-	if testPacket.bytes[0] != 0xF {
-		testPacket.bytes[0] = 0xF
+	if testPacket.Bytes[0] != 0xF {
+		testPacket.Bytes[0] = 0xF
 	} else {
-		testPacket.bytes[0] = 0x1
+		testPacket.Bytes[0] = 0x1
 	}
 
 	if testPacket.CheckIntegrity() {
