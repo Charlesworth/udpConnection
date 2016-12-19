@@ -3,18 +3,20 @@ package main
 import (
 	"log"
 	"net"
+	"udpConnection/packet"
 )
 
 var connectionMgr = newConnectionManager()
 var discoveryPort = ":8080"
 var udpPort = ":8081"
-var MTU = 1500
+var MTU = 1000
 
 func main() {
 	socket := initSocket(udpPort)
-	go listenForUDP(socket)
-	log.Println("UDP Server started, listening for connections")
-	startPortDiscoveryServer()
+	defer socket.Close()
+	log.Println("UDP Server started on port ", udpPort, ", listening for connections")
+	listenForUDP(socket)
+	//startPortDiscoveryServer()
 }
 
 func initSocket(port string) *net.UDPConn {
@@ -32,46 +34,26 @@ func initSocket(port string) *net.UDPConn {
 }
 
 func listenForUDP(socket *net.UDPConn) {
-	defer socket.Close()
-
-	//for each message
-	//check crc32, if corrupt, throw away
-	//decode
-	//if init MsgType->pass
-	//if not known IP, throw away
-	//switch on msgType
 	for {
 		buffer := make([]byte, MTU)
 		bytes, ip, err := socket.ReadFromUDP(buffer)
 		if err != nil {
-			log.Fatal("unable to read UDP packet payload")
+			log.Fatal("unable to read UDP packet payload due to error:", err)
 		}
-		//
-		// log.Println("UDP packet recieved [IP:", ip, "] [bytes:", bytes, "]")
-		// uncorrupt, packet := crc32CheckTruncatePacket(buffer)
-		// if !uncorrupt {
-		// 	continue
-		// }
-		//
-		// //packetSeqNo, msgType, data := decodePacket(packet)
-		// _, msgType, data := decodePacket(packet)
-		// if !connectionMgr.containsIP(ip.String()) {
-		// 	if msgType == msgInit {
-		// 		//pass to init here
-		// 	}
-		// 	continue
-		// }
-		//
-		// //switch on msgType
-		// switch msgType {
-		// case msgData:
-		// 	log.Println(data)
-		// 	//do something
-		// default:
-		// 	//error
-		// }
+		if bytes == 0 {
+			log.Fatal("unable to read UDP packet payload due to error:", err)
+		}
 
-		// send a message back
+		log.Println("Packet from IP[", ip.String(), "], ", bytes, " recieved")
+		packet := packet.Decode(buffer)
+		if !packet.CheckIntegrity() {
+			log.Println("Corrupt Packet, discarding")
+		}
+
+		data := packet.GetData()
+		log.Println(string(data))
+
+		// send a plain UDP message back
 		remoteAddr, err := net.ResolveUDPAddr("udp", ip.String())
 		socket.WriteToUDP([]byte("hello from reciever"), remoteAddr)
 	}

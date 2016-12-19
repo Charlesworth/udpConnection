@@ -8,10 +8,11 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"udpConnection/packet"
 )
 
 func main() {
-	udpOps(getUDPPort())
+	udpOps(":8081")
 }
 
 func udpOps(port string) {
@@ -30,7 +31,8 @@ func udpOps(port string) {
 	fmt.Print("Text to send: ")
 	text, _ := reader.ReadString('\n')
 
-	pc.WriteTo([]byte(text), serverAddr)
+	packet := packet.New(packet.MsgData, uint16(1), []byte(text))
+	pc.WriteTo(packet.Bytes, serverAddr)
 
 	//simple read
 	buffer := make([]byte, 1024)
