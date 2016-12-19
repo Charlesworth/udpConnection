@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 	"net"
-	"udpConnection/packet"
+
+	"github.com/charlesworth/udpConnection/packet"
 )
 
 var connectionMgr = newConnectionManager()
@@ -45,16 +46,19 @@ func listenForUDP(socket *net.UDPConn) {
 		}
 
 		log.Println("Packet from IP[", ip.String(), "], ", bytes, " recieved")
-		packet := packet.Decode(buffer)
-		if !packet.CheckIntegrity() {
+		recPkt := packet.Decode(buffer)
+		if !recPkt.CheckIntegrity() {
 			log.Println("Corrupt Packet, discarding")
 		}
 
-		data := packet.GetData()
+		data := recPkt.GetData()
 		log.Println(string(data))
+		log.Println(data)
+
+		sendPtk := packet.New(packet.MsgData, uint16(2), []byte("hi"))
 
 		// send a plain UDP message back
 		remoteAddr, err := net.ResolveUDPAddr("udp", ip.String())
-		socket.WriteToUDP([]byte("hello from reciever"), remoteAddr)
+		socket.WriteToUDP(sendPtk.Bytes, remoteAddr)
 	}
 }
