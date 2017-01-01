@@ -2,9 +2,11 @@ Virtual UDP connection, for real time data transfer.
 
 # Target Interface:
 I want to have interface parity with the net package's implementation of a tcp connection, supplying:
-  - Listen: to create a server
+  - Listener Type: used by the server to receive connection requests
+  - Connection Type: used by the server and client to send datagrams over a accepted connection
   - Dial: to connect to a server and supply a connection
-  - Connection Type: used by the server and client to send datagrams
+  - Listen: to create a server, and await incoming connection requests
+  - Accept: used to accept (or not) an incomming connection request from a client and return a connection
 
 # Aimed features:
   - crc32 hash on every datagram to check that the packet hasn't been corrupted on transmittal

@@ -1,4 +1,4 @@
-package udpConnection
+package main
 
 import (
 	"log"
