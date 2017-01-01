@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/charlesworth/udpConnection/packet"
 )
@@ -26,16 +28,10 @@ func udpOps(port string) {
 	}
 	defer pc.Close()
 
-	// reader := bufio.NewReader(os.Stdin)
-	// fmt.Print("Text to send: ")
-	// text, _ := reader.ReadString('\n')
-	text := "hi mr man"
-
-	pkt := packet.New(packet.MsgData, uint16(1), []byte(text))
-	// pkt := packet.New(packet.MsgData, uint16(1), []byte(text))
-	log.Println("integrity:", pkt.CheckIntegrity())
-	log.Println(pkt.Bytes)
-	pc.WriteTo(pkt.Bytes, serverAddr)
+	// simple write
+	text := getStdIn()
+	sendPkt := packet.New(packet.MsgData, uint16(1), []byte(text))
+	pc.WriteTo(sendPkt.Bytes, serverAddr)
 
 	//simple read
 	buffer := make([]byte, 1024)
@@ -43,6 +39,13 @@ func udpOps(port string) {
 	recPkt := packet.Decode(buffer)
 	fmt.Println(string(recPkt.GetData()))
 
+}
+
+func getStdIn() string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Text to send: ")
+	text, _ := reader.ReadString('\n')
+	return text
 }
 
 func getUDPPort() string {
